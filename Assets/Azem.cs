@@ -8,6 +8,8 @@ public class Azem : MonoBehaviour
 	public float horizontalSpeed;
 	public float jumpForce;
 
+	public Camera cam;
+
 	SpriteRenderer sr;
 	Rigidbody2D rb;
 
@@ -16,6 +18,7 @@ public class Azem : MonoBehaviour
 
 	void Awake()
 	{
+		Assert.IsTrue(cam != null);
 		sr = GetComponent<SpriteRenderer>();
 		Assert.IsTrue(sr != null);
 		rb = GetComponent<Rigidbody2D>();
@@ -78,6 +81,18 @@ public class Azem : MonoBehaviour
 				jumpForceAccumulated = 1.0f;
 			}
 		}
+
+		MoveCamera();
+	}
+
+	void MoveCamera(bool immediate = false)
+	{
+		float cameraTargetY = rb.position.y + 2.0f;
+		float cameraNextY = Mathf.Lerp(cam.transform.position.y, cameraTargetY, Time.deltaTime * 3);
+
+		Vector3 position = cam.transform.position;
+		position.y = cameraNextY;
+		cam.transform.position = position;
 	}
 
 	void OnCollisionEnter2D(Collision2D col)
