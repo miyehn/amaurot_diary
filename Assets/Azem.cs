@@ -5,11 +5,14 @@ using UnityEngine.Assertions;
 
 public class Azem : MonoBehaviour
 {
-	public float horizontalForce;
+	public float horizontalSpeed;
 	public float jumpForce;
 
 	SpriteRenderer sr;
 	Rigidbody2D rb;
+
+	bool onGround;
+	float jumpForceAccumulated;
 
 	void Awake()
 	{
@@ -17,48 +20,73 @@ public class Azem : MonoBehaviour
 		Assert.IsTrue(sr != null);
 		rb = GetComponent<Rigidbody2D>();
 		Assert.IsTrue(rb != null);
+
+		onGround = true;
+		jumpForceAccumulated = 1.0f;
 	}
 
-	void handleMovement()
+	void FixedUpdate()
 	{
-		// jump
-		if (Input.GetKeyDown(KeyCode.Space))
+		// horizontal movement (update by setting velocity directly)
+		Vector2 velocity = rb.velocity;
+
+		if (onGround)
 		{
-			rb.AddForce(new Vector2(0, jumpForce));
+			velocity.x = 0.0f;
+			if (Input.GetKey(KeyCode.LeftArrow))
+			{
+				velocity.x -= horizontalSpeed;
+			}
+			if (Input.GetKey(KeyCode.RightArrow))
+			{
+				velocity.x += horizontalSpeed;
+			}
+		}
+		else
+		{
+			if (Input.GetKey(KeyCode.LeftArrow))
+			{
+				velocity.x -= horizontalSpeed * 0.05f;
+			}
+			if (Input.GetKey(KeyCode.RightArrow))
+			{
+				velocity.x += horizontalSpeed * 0.05f;
+			}
 		}
 
-		// horizontal movement
-		if (Input.GetKeyUp(KeyCode.LeftArrow) || Input.GetKeyUp(KeyCode.RightArrow))
-		{
-			rb.velocity = Vector2.zero;
-			return;
-		}
+		if (velocity.x > horizontalSpeed * 1.25f) velocity.x = horizontalSpeed * 1.25f;
+		else if (velocity.x < -horizontalSpeed * 1.25f) velocity.x = -horizontalSpeed * 1.25f;
 
-		Vector2 horizontalForceVec = Vector2.zero;
-		if (Input.GetKeyDown(KeyCode.LeftArrow))
-		{
-			horizontalForceVec += new Vector2(-horizontalForce, 0);
-		}
-		if (Input.GetKeyDown(KeyCode.RightArrow))
-		{
-			horizontalForceVec += new Vector2(horizontalForce, 0);
-		}
-		rb.AddForce(horizontalForceVec);
+		rb.velocity = velocity;
 	}
 
 	// Update is called once per frame
 	void Update()
 	{
-		handleMovement();
+		// jump
+		if (onGround)
+		{
+			if (Input.GetKey(KeyCode.Space))
+			{
+				jumpForceAccumulated += Time.deltaTime * 0.5f;
+				if (jumpForceAccumulated > 1.5f) jumpForceAccumulated = 1.5f;
+			}
+			if (Input.GetKeyUp(KeyCode.Space))
+			{
+				float velocityX = rb.velocity.x;
+				rb.AddForce(new Vector2(velocityX, jumpForce * jumpForceAccumulated));
+				jumpForceAccumulated = 1.0f;
+			}
+		}
 	}
 
 	void OnCollisionEnter2D(Collision2D col)
 	{
-		Debug.Log("Collision with " + col.gameObject.name);
+		onGround = true;
 	}
 
 	void OnCollisionExit2D(Collision2D col)
 	{
-		Debug.Log("Left contact with " + col.gameObject.name);
+		onGround = false;
 	}
 }
