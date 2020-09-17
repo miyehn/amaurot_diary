@@ -26,6 +26,8 @@ public class Azem : MonoBehaviour
 
 		onGround = true;
 		jumpForceAccumulated = 1.0f;
+
+		MoveCamera(true);
 	}
 
 	void FixedUpdate()
@@ -88,7 +90,8 @@ public class Azem : MonoBehaviour
 	void MoveCamera(bool immediate = false)
 	{
 		float cameraTargetY = rb.position.y + 2.0f;
-		float cameraNextY = Mathf.Lerp(cam.transform.position.y, cameraTargetY, Time.deltaTime * 3);
+		float cameraNextY = 
+			immediate ? cameraTargetY : Mathf.Lerp(cam.transform.position.y, cameraTargetY, Time.deltaTime * 3);
 
 		Vector3 position = cam.transform.position;
 		position.y = cameraNextY;
